@@ -131,7 +131,7 @@ const flowPrincipal = bot
 const main = async () => {
     const adapterDB = new MockAdapter()
     const adapterFlow = bot.createFlow([
-        flowBienvenida,
+        flowPrincipal,
         flujoUsuariosNORegistrados,
         flujoUsuariosRegistrados,
     ])
