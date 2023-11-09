@@ -2,7 +2,7 @@ import bot from "@bot-whatsapp/bot";
 import MockAdapter from "@bot-whatsapp/database/mock";
 import MetaProvider from "@bot-whatsapp/provider/meta";
 import GoogleSheetService from "./services/sheets/index.js";
-import  "dotenv/config.js"
+import "dotenv/config.js";
 const googlesheet = new GoogleSheetService(
   "1sjSk6t983zc9ZeojTdiLn67tN4W854Ekcjq75Dwfga8"
 );
@@ -53,7 +53,7 @@ const flujoProducto = bot
       if (getCheck.includes("NO_EXISTE")) {
         return gotoFlow(flowEmpty);
       } else {
-        state.update({pedido:ctx.body})
+        state.update({ pedido: ctx.body });
         return gotoFlow(flowPedido);
       }
     }
@@ -71,12 +71,10 @@ const flujoAgente = bot
 
 const flujoMenu = bot
   .addKeyword("PRODUCTOS")
-  .addAnswer([
-    "¿Como podemos ayudarte?",
-    "",
-    "*1-*🛍Realizar *Pedido*",
-    "*2-*👨‍💻Contactar con *Agente* ",
-  ])
+  .addAnswer("Este mensaje envia tres botones", {
+    buttons: [{ body: "Boton 1" }, { body: "Boton 2" }, { body: "Boton 3" }],
+  })
+
   .addAnswer("Responda con el numero de la opcion!");
 
 const flujoError = bot.addKeyword("ERROR").addAnswer("ERROR");
@@ -127,27 +125,26 @@ const flowPrincipal = bot
     }
   );
 
-
 const main = async () => {
-    const adapterDB = new MockAdapter()
-    const adapterFlow = bot.createFlow([
-        flowPrincipal,
-        flujoUsuariosNORegistrados,
-        flujoUsuariosRegistrados,
-    ])
+  const adapterDB = new MockAdapter();
+  const adapterFlow = bot.createFlow([
+    flowPrincipal,
+    flujoUsuariosNORegistrados,
+    flujoUsuariosRegistrados,
+  ]);
 
-    const adapterProvider = bot.createProvider(MetaProvider, {
-        jwtToken: process.env.JWTOKEN,
-        numberId: process.env.NUMBER_ID,
-        verifyToken: process.env.VERIFY_TOKEN,
-        version: 'v16.0',
-    })
+  const adapterProvider = bot.createProvider(MetaProvider, {
+    jwtToken: process.env.JWTOKEN,
+    numberId: process.env.NUMBER_ID,
+    verifyToken: process.env.VERIFY_TOKEN,
+    version: "v16.0",
+  });
 
-    bot.createBot({
-        flow: adapterFlow,
-        provider: adapterProvider,
-        database: adapterDB,
-    })
-}
+  bot.createBot({
+    flow: adapterFlow,
+    provider: adapterProvider,
+    database: adapterDB,
+  });
+};
 
-main()
+main();
