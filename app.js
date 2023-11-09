@@ -1,13 +1,8 @@
-import "dotenv/config";
 import bot from "@bot-whatsapp/bot";
-import { getDay } from "date-fns";
-import ServerAPI from "./http";
-import BaileysProvider from "@bot-whatsapp/provider/baileys";
 import MockAdapter from "@bot-whatsapp/database/mock";
-import chatgpt from "./services/openai/chatgpt.js";
+import MetaProvider from "@bot-whatsapp/provider/meta";
 import GoogleSheetService from "./services/sheets/index.js";
-import { delay } from "@whiskeysockets/baileys";
-
+import  "dotenv/config.js"
 const googlesheet = new GoogleSheetService(
   "1sjSk6t983zc9ZeojTdiLn67tN4W854Ekcjq75Dwfga8"
 );
@@ -132,29 +127,27 @@ const flowPrincipal = bot
     }
   );
 
+
 const main = async () => {
-  const adapterDB = new MockAdapter();
-  const adapterFlow = bot.createFlow([
-    flowPrincipal,
-    flujoUsuariosNORegistrados,
-    flujoUsuariosRegistrados,
-    flujoMenu,
-    flujoProducto,
-    flujoAgente,
-    flujoError,
-  ]);
+    const adapterDB = new MockAdapter()
+    const adapterFlow = bot.createFlow([
+        flowBienvenida,
+        flujoUsuariosNORegistrados,
+        flujoUsuariosRegistrados,
+    ])
 
-  const adapterProvider = bot.createProvider(BaileysProvider);
-  const httpServer = new ServerAPI(adapterProvider, adapterDB);
-  
-  bot.createBot({
-    flow: adapterFlow,
-    provider: adapterProvider,
-    database: adapterDB,
-  });
+    const adapterProvider = bot.createProvider(MetaProvider, {
+        jwtToken: process.env.JWTOKEN,
+        numberId: process.env.NUMBER_ID,
+        verifyToken: process.env.VERIFY_TOKEN,
+        version: 'v16.0',
+    })
 
-  httpServer.start();
-};
+    bot.createBot({
+        flow: adapterFlow,
+        provider: adapterProvider,
+        database: adapterDB,
+    })
+}
 
-main();
-
+main()
