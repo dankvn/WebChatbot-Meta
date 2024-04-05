@@ -21,6 +21,7 @@
         "dotenv": "^16.3.1",
         "google-auth-library": "^8.9.0",
         "google-spreadsheet": "^4.1.0",
+        "gpt4free-plugin": "^1.0.4",
         "openai": "^4.15.2",
         "polka": "^0.5.2"
     },

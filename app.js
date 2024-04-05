@@ -3,75 +3,44 @@ import MockAdapter from "@bot-whatsapp/database/mock";
 import MetaProvider from "@bot-whatsapp/provider/meta";
 import GoogleSheetService from "./services/sheets/index.js";
 import "dotenv/config.js";
+import GPTFREE from "gpt4free-plugin"
 const googlesheet = new GoogleSheetService(
   "1sjSk6t983zc9ZeojTdiLn67tN4W854Ekcjq75Dwfga8"
 );
 
 const GLOBAL_STATE = [];
+const gpt = new GPTFREE();
 
-const flujoMenu = bot
-  .addKeyword("PRODUCTOS")
-  .addAnswer("Este mensaje envia tres botones", {
-    buttons: [
-      { body: "Boton 1" }, 
-      { body: "Boton 2" }, 
-      { body: "Boton 3" }
-    ],
-  })
+const flowPrincipal = addKeyword(EVENTS.WELCOME)
+.addAction(
+  async (ctx, { flowDynamic }) => {
+    
+    const text = ctx.body;
+    
+    const messages =[
+      { role:"assistant", content:""},
+      { role: "user", content: text },
+    ]
 
-  .addAnswer("Responda con el numero de la opcion!");
-
-const flujoError = bot.addKeyword("ERROR").addAnswer("ERROR");
-
-const flujoUsuariosRegistrados = bot
-  .addKeyword("USUARIOS_REGISTRADOS")
-  .addAction(async (ctx, { flowDynamic, gotoFlow }) => {
-    const telefono = ctx.from;
-    const ifExist = await googlesheet.validatePhoneNumber(telefono);
-    const mensaje = `👋Hola ${ifExist.Nombre}, soy tu asistente virtual `;
-
-    await flowDynamic(mensaje);
-    if (ifExist) {
-      // Si existe lo enviamos al flujo de regostrados..
-      gotoFlow(flujoMenu);
-    } else {
-      // Si NO existe lo enviamos al flujo de NO registrados..
-      gotoFlow(flujoError);
+    const options = {
+      model:"gpt-4",
+      prompt:""
     }
-  });
 
-const flujoUsuariosNORegistrados = bot
-  .addKeyword("USUARIOS_NO_REGISTRADOS")
-  .addAnswer("no esta autorizado para ingrezara al bot");
+  const response = await gpt.chatCompletions(messages,options);
 
-//Inicio de flow //.
-const flowPrincipal = bot
-  .addKeyword("hola")
-  .addAnswer(
-    ["*Bienvenidos a Pelletier&Co.*"],
-    null,
-    async (ctx, { gotoFlow }) => {
-      const telefono = ctx.from;
-      console.log(
-        "consultando en base de datos si existe el numero registrado...."
-      );
+   console.log(`${new Date()}\nPregunta: ${text} \nRespuesta: ${response}`);
+   await flowDynamic (response)
 
-      const ifExist = await googlesheet.validatePhoneNumber(telefono);
-      console.log(ifExist);
 
-      if (ifExist) {
-        // Si existe lo enviamos al flujo de regostrados..
-        gotoFlow(flujoUsuariosRegistrados);
-      } else {
-        // Si NO existe lo enviamos al flujo de NO registrados..
-        gotoFlow(flujoUsuariosNORegistrados);
-      }
-    }
-  );
+
+  }
+);
+
 
 const main = async () => {
   const adapterDB = new MockAdapter();
-  const adapterFlow = bot.createFlow([
+  const adapterFlow = bot.createFlow([ 
     flowPrincipal,
     flujoUsuariosNORegistrados,
     flujoUsuariosRegistrados,
